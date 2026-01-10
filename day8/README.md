@@ -37,7 +37,7 @@ Now we use set operations (on sets with a unique number of elements) to express 
 $$
 \begin{align*}
 \left\{ a \right\} &= D_7 \setminus D_1 \\
-\left\{ g \right\} &= I_6 \setminus ( D_3 \cup D_4 ) \\
+\left\{ g \right\} &= I_6 \setminus ( D_7 \cup D_4 ) \\
 \left\{ b \right\} &= I_6 \setminus (D_1 \cup \left\{ a,g \right\} ) \\
 \left\{ d \right\} &= I_5  \setminus \left\{ a,g \right\} \\
 \left\{ f \right\} &= I_6  \setminus \left\{ a,b,g \right\} \\
