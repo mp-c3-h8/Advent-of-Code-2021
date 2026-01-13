@@ -1,6 +1,6 @@
 import os.path
 from timeit import default_timer as timer
-from math import sqrt, ceil
+from math import sqrt, ceil, floor
 import re
 
 type Pos = tuple[int, int]
@@ -68,9 +68,10 @@ def max_y(w: int) -> int:
 
 def part2(x_min: int, x_max: int, y_min: int, y_max, w_star: int) -> int:
     # brute force
+    x_lower_bound = floor((-1+sqrt(1+8*x_min))/2)
     return sum(is_hit(u, w, x_min, x_max, y_min, y_max)
                for w in range(y_min, w_star+1)
-               for u in range(1, x_max+1))
+               for u in range(x_lower_bound, x_max+1))
 
 
 s = timer()
