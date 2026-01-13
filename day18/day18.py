@@ -2,9 +2,8 @@ import os.path
 from timeit import default_timer as timer
 from operator import methodcaller
 from math import floor, ceil
-from itertools import product
+from itertools import permutations
 from functools import reduce
-from copy import deepcopy
 
 
 class Node:
@@ -57,12 +56,7 @@ def find_explode(node: Node | None, depth=0) -> Node | None:
             if node.left.val >= 0 and node.right.val >= 0 and depth >= 4:
                 return node
 
-        left = find_explode(node.left, depth+1)
-        if left:
-            return left
-        right = find_explode(node.right, depth+1)
-        if right:
-            return right
+        return find_explode(node.left, depth+1) or find_explode(node.right, depth+1)
 
 
 def find_split(node: Node | None) -> Node | None:
@@ -70,66 +64,46 @@ def find_split(node: Node | None) -> Node | None:
         if node.val >= 10:
             return node
 
-        left = find_split(node.left)
-        if left:
-            return left
-        right = find_split(node.right)
-        if right:
-            return right
+        return find_split(node.left) or find_split(node.right)
 
 
 def find_right(node: Node | None) -> Node | None:
     if node is not None:
         if node.val >= 0:
             return node
-
-        right = find_right(node.right)
-        if right:
-            return right
-        left = find_right(node.left)
-        if left:
-            return left
+        return find_right(node.right)
 
 
 def find_left(node: Node | None) -> Node | None:
     if node is not None:
         if node.val >= 0:
             return node
-
-        left = find_left(node.left)
-        if left:
-            return left
-
-        right = find_left(node.right)
-        if right:
-            return right
+        return find_left(node.left)
 
 
 def explode(node: Node) -> None:
     # add to the left
-    to_search = node
-    assert to_search.parent
-    while (to_search.parent.left == to_search):
-        to_search = to_search.parent
-        if to_search.parent == None:
+    find = node
+    assert find.parent
+    while (find.parent.left == find):
+        find = find.parent
+        if find.parent == None:
             break
-    if to_search.parent:
-        add_left = find_right(to_search.parent.left)
-        if add_left:
-            assert node.left
+    if find.parent:
+        add_left = find_right(find.parent.left)
+        if add_left and node.left:
             add_left.val += node.left.val
 
     # add to the right
-    to_search = node
-    assert to_search.parent
-    while (to_search.parent.right == to_search):
-        to_search = to_search.parent
-        if to_search.parent == None:
+    find = node
+    assert find.parent
+    while (find.parent.right == find):
+        find = find.parent
+        if find.parent == None:
             break
-    if to_search.parent:
-        add_right = find_left(to_search.parent.right)
-        if add_right:
-            assert node.right
+    if find.parent:
+        add_right = find_left(find.parent.right)
+        if add_right and node.right:
             add_right.val += node.right.val
 
     # delete node
@@ -139,11 +113,9 @@ def explode(node: Node) -> None:
 
 
 def split(node: Node) -> None:
-    left_val = floor(node.val/2)
-    right_val = ceil(node.val/2)
+    node.left = Node(floor(node.val/2), node)
+    node.right = Node(ceil(node.val/2), node)
     node.val = -1
-    node.left = Node(left_val, node)
-    node.right = Node(right_val, node)
 
 
 def add_snails(left: Node, right: Node) -> Node:
@@ -202,7 +174,7 @@ with open(input_path) as f:
 
 print("Part 1:", magnitude(reduce(process, (create_snail(snail_str) for snail_str in data))))
 
-p2 = max(magnitude(process(create_snail(s1), create_snail(s2))) for s1, s2 in product(data, repeat=2))
+p2 = max(magnitude(process(create_snail(s1), create_snail(s2))) for s1, s2 in permutations(data, 2))
 print("Part 2:", p2)
 
 e = timer()
