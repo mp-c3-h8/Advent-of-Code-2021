@@ -19,13 +19,13 @@ class Node:
     def set_right(self, node: Node) -> None:
         self.right = node
 
-    def add_snail(self, snail_str: str) -> None:
+    def add_nodes(self, snail_str: str) -> None:
         for side, method in zip(self.split_snail_str(snail_str), ("set_left", "set_right")):
             val = int(side) if side.isdigit() else -1
             node = Node(val, self)
             methodcaller(method, node)(self)
             if val == -1:
-                node.add_snail(side)
+                node.add_nodes(side)
 
     def split_snail_str(self, snail_str: str) -> tuple[str, str]:
         count = 0
@@ -46,7 +46,7 @@ class Node:
 
 def create_snail(snail_str: str) -> Node:
     root = Node(-2, None)
-    root.add_snail(snail_str)
+    root.add_nodes(snail_str)
     return root
 
 
@@ -89,10 +89,8 @@ def explode(node: Node) -> None:
         find = find.parent
         if find.parent == None:
             break
-    if find.parent:
-        add_left = find_right(find.parent.left)
-        if add_left and node.left:
-            add_left.val += node.left.val
+    if find.parent and (add_left := find_right(find.parent.left)) and node.left:
+        add_left.val += node.left.val
 
     # add to the right
     find = node
@@ -101,10 +99,8 @@ def explode(node: Node) -> None:
         find = find.parent
         if find.parent == None:
             break
-    if find.parent:
-        add_right = find_left(find.parent.right)
-        if add_right and node.right:
-            add_right.val += node.right.val
+    if find.parent and (add_right := find_left(find.parent.right)) and node.right:
+        add_right.val += node.right.val
 
     # delete node
     node.left = None
@@ -137,18 +133,16 @@ def to_snail(node: Node | None) -> str:
     return f"[{to_snail(node.left)},{to_snail(node.right)}]"
 
 
-def reduce_snail(snail: Node) -> Node:
+def reduce_snail(snail: Node) -> None:
     reducing = True
     while reducing:
-        if (n := find_explode(snail)):
-            explode(n)
+        if (node := find_explode(snail)):
+            explode(node)
             continue
-        elif (n := find_split(snail)):
-            split(n)
+        elif (node := find_split(snail)):
+            split(node)
             continue
         reducing = False
-    return snail
-
 
 def magnitude(node: Node) -> int:
     if node is not None:
@@ -160,8 +154,8 @@ def magnitude(node: Node) -> int:
 
 def process(left: Node, right: Node) -> Node:
     added = add_snails(left, right)
-    reduced = reduce_snail(added)
-    return reduced
+    reduce_snail(added)
+    return added
 
 
 s = timer()
