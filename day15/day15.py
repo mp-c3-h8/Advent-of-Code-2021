@@ -15,6 +15,7 @@ def neighbors(pos: Pos) -> Iterator[Pos]:
 def dijkstra(grid: Grid, dimy: int, dimx: int, start: Pos, end: Pos, repeats: int = 0) -> int:
 
     def is_valid_and_cost(pos: Pos) -> tuple[bool, int]:
+        nonlocal grid, dimy, dimx, repeats
         div_y, mod_y = divmod(int(pos.imag), dimy)
         div_x, mod_x = divmod(int(pos.real), dimx)
         local_pos = complex(mod_x, mod_y)
