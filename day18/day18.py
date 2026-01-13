@@ -43,6 +43,12 @@ class Node:
 
         return snail_str[1:i], snail_str[i+1:-1]
 
+    def magnitude(self) -> int:
+        if self.val >= 0:
+            return self.val
+        assert self.left and self.right
+        return 3*self.left.magnitude() + 2*self.right.magnitude()
+
 
 def create_snail(snail_str: str) -> Node:
     root = Node(-2, None)
@@ -144,13 +150,6 @@ def reduce_snail(snail: Node) -> None:
             continue
         reducing = False
 
-def magnitude(node: Node) -> int:
-    if node is not None:
-        if node.val >= 0:
-            return node.val
-        assert node.left and node.right
-        return 3*magnitude(node.left) + 2*magnitude(node.right)
-
 
 def process(left: Node, right: Node) -> Node:
     added = add_snails(left, right)
@@ -166,9 +165,9 @@ input_path = os.path.join(dir_path, "input.txt")
 with open(input_path) as f:
     data = f.read().splitlines()
 
-print("Part 1:", magnitude(reduce(process, (create_snail(snail_str) for snail_str in data))))
+print("Part 1:", (reduce(process, (create_snail(snail_str) for snail_str in data))).magnitude())
 
-p2 = max(magnitude(process(create_snail(s1), create_snail(s2))) for s1, s2 in permutations(data, 2))
+p2 = max((process(create_snail(s1), create_snail(s2))).magnitude() for s1, s2 in permutations(data, 2))
 print("Part 2:", p2)
 
 e = timer()
