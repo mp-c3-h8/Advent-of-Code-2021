@@ -1,38 +1,38 @@
 import os.path
 from timeit import default_timer as timer
-from operator import methodcaller, attrgetter
 from math import floor, ceil
 from itertools import permutations
 from functools import reduce
+import weakref
 
 
 class Node:
+    __slots__ = ("val", "parent", "left", "right", "__weakref__")
+
     def __init__(self, val: int, parent: Node | None) -> None:
         self.val = val
         self.parent = parent
         self.left: Node | None = None
         self.right: Node | None = None
 
-    def set_left(self, node: Node) -> None:
-        self.left = node
-
-    def set_right(self, node: Node) -> None:
-        self.right = node
-
     def add_nodes(self, snail_str: str) -> None:
         left, right = self.split_snail_str(snail_str)
+
+        self.left = Node(-1, self)
+        if left.isdigit():
+            self.left.val = int(left)
+        else:
+            self.left.add_nodes(left)
+
+        self.right = Node(-1, self)
+        if right.isdigit():
+            self.right.val = int(right)
+        else:
+            self.right.add_nodes(right)
+
         # mark for (maybe) exploding
         if left.isdigit() and right.isdigit():
             self.val = -2
-            self.left = Node(int(left), self)
-            self.right = Node(int(right), self)
-        else:
-            for side, method in zip((left, right), ("set_left", "set_right")):
-                val = int(side) if side.isdigit() else -1
-                node = Node(val, self)
-                methodcaller(method, node)(self)
-                if val == -1:
-                    node.add_nodes(side)
 
     def split_snail_str(self, snail_str: str) -> tuple[str, str]:
         count = 0
@@ -162,7 +162,7 @@ def reduce_snail(snail: Node) -> None:
         reducing = False
 
 
-def process(left: Node, right: Node) -> Node:
+def add_and_reduce(left: Node, right: Node) -> Node:
     added = add_snails(left, right)
     reduce_snail(added)
     return added
@@ -176,9 +176,9 @@ input_path = os.path.join(dir_path, "input.txt")
 with open(input_path) as f:
     data = f.read().splitlines()
 
-print("Part 1:", (reduce(process, (create_snail(snail_str) for snail_str in data))).magnitude)
+print("Part 1:", (reduce(add_and_reduce, (create_snail(snail_str) for snail_str in data))).magnitude)
 
-p2 = max((process(create_snail(s1), create_snail(s2))).magnitude for s1, s2 in permutations(data, 2))
+p2 = max((add_and_reduce(create_snail(s1), create_snail(s2))).magnitude for s1, s2 in permutations(data, 2))
 print("Part 2:", p2)
 
 e = timer()
