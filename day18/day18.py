@@ -3,11 +3,10 @@ from timeit import default_timer as timer
 from math import floor, ceil
 from itertools import permutations
 from functools import reduce
-import weakref
 
 
 class Node:
-    __slots__ = ("val", "parent", "left", "right", "__weakref__")
+    __slots__ = ("val", "parent", "left", "right")
 
     def __init__(self, val: int, parent: Node | None) -> None:
         self.val = val
