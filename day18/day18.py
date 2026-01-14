@@ -1,6 +1,6 @@
 import os.path
 from timeit import default_timer as timer
-from operator import methodcaller
+from operator import methodcaller, attrgetter
 from math import floor, ceil
 from itertools import permutations
 from functools import reduce
@@ -9,7 +9,7 @@ from functools import reduce
 class Node:
     def __init__(self, val: int, parent: Node | None) -> None:
         self.val = val
-        self.parent: Node | None = parent
+        self.parent = parent
         self.left: Node | None = None
         self.right: Node | None = None
 
@@ -50,11 +50,12 @@ class Node:
 
         return snail_str[1:i], snail_str[i+1:-1]
 
+    @property
     def magnitude(self) -> int:
         if self.val >= 0:
             return self.val
         # always exists by construction
-        return 3*self.left.magnitude() + 2*self.right.magnitude()  # type: ignore
+        return 3*self.left.magnitude + 2*self.right.magnitude  # type: ignore
 
 
 def create_snail(snail_str: str) -> Node:
@@ -81,41 +82,36 @@ def find_split(node: Node) -> Node | None:
         return right
 
 
-def find_right(node: Node) -> Node | None:
+def find(node: Node, go_left: bool) -> Node | None:
     if node.val >= 0:
         return node
-    elif node.right:
-        return find_right(node.right)
-
-
-def find_left(node: Node) -> Node | None:
-    if node.val >= 0:
-        return node
-    elif node.left:
-        return find_left(node.left)
+    elif go_left and node.left:
+        return find(node.left, go_left)
+    elif not go_left and node.right:
+        return find(node.right, go_left)
 
 
 def explode(node: Node) -> None:
     # add to the left
-    find = node
-    assert find.parent
-    while (find.parent.left == find):
-        find = find.parent
-        if find.parent == None:
+    search = node
+    assert search.parent
+    while (search.parent.left == search):
+        search = search.parent
+        if search.parent == None:
             break
-    if find.parent and find.parent.left:
-        if (add_left := find_right(find.parent.left)) and node.left:
+    if search.parent and search.parent.left:
+        if (add_left := find(search.parent.left, False)) and node.left:
             add_left.val += node.left.val
 
     # add to the right
-    find = node
-    assert find.parent
-    while (find.parent.right == find):
-        find = find.parent
-        if find.parent == None:
+    search = node
+    assert search.parent
+    while (search.parent.right == search):
+        search = search.parent
+        if search.parent == None:
             break
-    if find.parent and find.parent.right:
-        if (add_right := find_left(find.parent.right)) and node.right:
+    if search.parent and search.parent.right:
+        if (add_right := find(search.parent.right, True)) and node.right:
             add_right.val += node.right.val
 
     # delete node
@@ -180,9 +176,9 @@ input_path = os.path.join(dir_path, "input.txt")
 with open(input_path) as f:
     data = f.read().splitlines()
 
-print("Part 1:", (reduce(process, (create_snail(snail_str) for snail_str in data))).magnitude())
+print("Part 1:", (reduce(process, (create_snail(snail_str) for snail_str in data))).magnitude)
 
-p2 = max((process(create_snail(s1), create_snail(s2))).magnitude() for s1, s2 in permutations(data, 2))
+p2 = max((process(create_snail(s1), create_snail(s2))).magnitude for s1, s2 in permutations(data, 2))
 print("Part 2:", p2)
 
 e = timer()
