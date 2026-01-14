@@ -20,12 +20,19 @@ class Node:
         self.right = node
 
     def add_nodes(self, snail_str: str) -> None:
-        for side, method in zip(self.split_snail_str(snail_str), ("set_left", "set_right")):
-            val = int(side) if side.isdigit() else -1
-            node = Node(val, self)
-            methodcaller(method, node)(self)
-            if val == -1:
-                node.add_nodes(side)
+        left, right = self.split_snail_str(snail_str)
+        # mark for (maybe) exploding
+        if left.isdigit() and right.isdigit():
+            self.val = -2
+            self.left = Node(int(left), self)
+            self.right = Node(int(right), self)
+        else:
+            for side, method in zip((left, right), ("set_left", "set_right")):
+                val = int(side) if side.isdigit() else -1
+                node = Node(val, self)
+                methodcaller(method, node)(self)
+                if val == -1:
+                    node.add_nodes(side)
 
     def split_snail_str(self, snail_str: str) -> tuple[str, str]:
         count = 0
@@ -46,44 +53,45 @@ class Node:
     def magnitude(self) -> int:
         if self.val >= 0:
             return self.val
-        assert self.left and self.right
-        return 3*self.left.magnitude() + 2*self.right.magnitude()
+        # always exists by construction
+        return 3*self.left.magnitude() + 2*self.right.magnitude()  # type: ignore
 
 
 def create_snail(snail_str: str) -> Node:
-    root = Node(-2, None)
+    root = Node(-1, None)
     root.add_nodes(snail_str)
     return root
 
 
-def find_explode(node: Node | None, depth=0) -> Node | None:
-    if node is not None:
-        if node.left and node.right:
-            if node.left.val >= 0 and node.right.val >= 0 and depth >= 4:
-                return node
-
-        return find_explode(node.left, depth+1) or find_explode(node.right, depth+1)
-
-
-def find_split(node: Node | None) -> Node | None:
-    if node is not None:
-        if node.val >= 10:
-            return node
-
-        return find_split(node.left) or find_split(node.right)
+def find_explode(node: Node, depth=0) -> Node | None:
+    if depth >= 4 and node.val == -2:
+        return node
+    if node.left and (left := find_explode(node.left, depth+1)):
+        return left
+    if node.right and (right := find_explode(node.right, depth+1)):
+        return right
 
 
-def find_right(node: Node | None) -> Node | None:
-    if node is not None:
-        if node.val >= 0:
-            return node
+def find_split(node: Node) -> Node | None:
+    if node.val >= 10:
+        return node
+    if node.left and (left := find_split(node.left)):
+        return left
+    if node.right and (right := find_split(node.right)):
+        return right
+
+
+def find_right(node: Node) -> Node | None:
+    if node.val >= 0:
+        return node
+    elif node.right:
         return find_right(node.right)
 
 
-def find_left(node: Node | None) -> Node | None:
-    if node is not None:
-        if node.val >= 0:
-            return node
+def find_left(node: Node) -> Node | None:
+    if node.val >= 0:
+        return node
+    elif node.left:
         return find_left(node.left)
 
 
@@ -95,8 +103,9 @@ def explode(node: Node) -> None:
         find = find.parent
         if find.parent == None:
             break
-    if find.parent and (add_left := find_right(find.parent.left)) and node.left:
-        add_left.val += node.left.val
+    if find.parent and find.parent.left:
+        if (add_left := find_right(find.parent.left)) and node.left:
+            add_left.val += node.left.val
 
     # add to the right
     find = node
@@ -105,23 +114,29 @@ def explode(node: Node) -> None:
         find = find.parent
         if find.parent == None:
             break
-    if find.parent and (add_right := find_left(find.parent.right)) and node.right:
-        add_right.val += node.right.val
+    if find.parent and find.parent.right:
+        if (add_right := find_left(find.parent.right)) and node.right:
+            add_right.val += node.right.val
 
     # delete node
     node.left = None
     node.right = None
     node.val = 0
 
+    # mark for (maybe) exploding
+    if node.parent and node.parent.left and node.parent.right:
+        if node.parent.left.val >= 0 and node.parent.right.val >= 0:
+            node.parent.val = -2
+
 
 def split(node: Node) -> None:
     node.left = Node(floor(node.val/2), node)
     node.right = Node(ceil(node.val/2), node)
-    node.val = -1
+    node.val = -2
 
 
 def add_snails(left: Node, right: Node) -> Node:
-    root = Node(-2, None)
+    root = Node(-1, None)
     left.val = -1
     left.parent = root
     right.val = -1
