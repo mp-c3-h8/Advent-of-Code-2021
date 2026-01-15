@@ -42,20 +42,20 @@ def dirac_dice(pos: int, score: int, other_pos: int, other_score: int) -> tuple[
     # sum 4: (2,1,1) or (1,2,1) or (1,1,2)
     ROLLS = {3: 1, 4: 3, 5: 6, 6: 7, 7: 6, 8: 3, 9: 1}
 
-    p1_wins = p2_wins = 0
+    wins = other_wins = 0
 
     for roll, num in ROLLS.items():
         new_pos = mod if (mod := (pos+roll) % 10) else 10
         new_score = score + new_pos
         if new_score >= 21:  # base case is here
-            p1_wins += num
+            wins += num
         else:
-            # reverse players
-            new_p2_wins, new_p1_wins = dirac_dice(other_pos, other_score, new_pos, new_score)
-            p1_wins += num * new_p1_wins
-            p2_wins += num * new_p2_wins
+            # swap players
+            other_wins_, wins_ = dirac_dice(other_pos, other_score, new_pos, new_score)
+            wins += num * wins_
+            other_wins += num * other_wins_
 
-    return p1_wins, p2_wins
+    return wins, other_wins
 
 
 s = timer()
