@@ -100,7 +100,7 @@ def solve(input: list[str]) -> int:
                 else:
                     continue
 
-                room_idx = ROOMS_IDX[DESTINATION] * 2  # A=0, B=2, C=4, D=6
+                room_idx = i * 2  # A=0, B=2, C=4, D=6
                 local_idx = i * ROOM_LENGTH
 
                 # who can move?
