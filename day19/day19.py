@@ -94,6 +94,7 @@ def create_scanners(data: str) -> list[Scanner]:
 
 
 def find_rot_and_trans(s_i: Scanner, s_j: Scanner, overlap: set[int], rotations) -> tuple[Rotation, Vector]:
+    beacons = set(tuple(b) for b in s_i.beacons)
     for dist in overlap:
         for (bi_1, bi_2) in s_i.pairwise_distances[dist]:
             for (bj_1, bj_2) in s_j.pairwise_distances[dist]:
@@ -105,9 +106,8 @@ def find_rot_and_trans(s_i: Scanner, s_j: Scanner, overlap: set[int], rotations)
 
                         # we have a rotation rot_ij and translation r_ij
                         # lets see if they are correct
-                        beacons = set(tuple(b) for b in s_i.beacons)
-                        beacons.intersection_update(tuple(r_ij + rot_ij @ b) for b in s_j.beacons)
-                        if len(beacons) >= 12:
+                        common_beacons = beacons.intersection(tuple(r_ij + rot_ij @ b) for b in s_j.beacons)
+                        if len(common_beacons) >= 12:
                             return (rot_ij, r_ij)
 
     raise ValueError("No possible rotation found")
