@@ -164,6 +164,7 @@ def solve(data: str) -> tuple[int, int]:
         for s_j, rot_ij, r_ij in transforms[s_i]:  # local transformation from s_i to s_j
             if s_j in seen:
                 continue
+            seen.add(s_j)
 
             # origin of scanner j relative to scanner 0
             r_0j = r_0i + rot_0i @ r_ij
@@ -174,7 +175,6 @@ def solve(data: str) -> tuple[int, int]:
 
             # we finally have the beacons of scanner j relative to scanner 0
             beacons.update(tuple(r_0j + rot_0j  @ b) for b in s_j.beacons)
-            seen.add(s_j)
 
             # extend the kinematic "chain"
             q.append((s_j, rot_0j, r_0j))
